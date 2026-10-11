@@ -184,7 +184,6 @@ defineExpose({ fit, locate });
 </script>
 <template>
   <div
-    ref="container"
     class="map-canvas"
     :class="{ 'map-canvas--dark': dark, 'map-canvas--online': online }"
     :aria-label="
@@ -192,5 +191,8 @@ defineExpose({ fit, locate });
         ? 'Mission map; use the vertex table for keyboard input'
         : '航线地图，可通过坐标表键盘输入'
     "
-  ></div>
+  >
+    <!-- Vue owns the wrapper classes; Leaflet owns classes on this stable node. -->
+    <div ref="container" class="map-surface"></div>
+  </div>
 </template>

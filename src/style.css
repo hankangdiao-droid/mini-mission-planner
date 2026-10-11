@@ -306,6 +306,10 @@ details[open] summary {
   font-size: 12px;
 }
 .map-canvas {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  min-width: 0;
   flex: 1;
   min-height: 400px;
   background-color: #eaf0f3;
@@ -313,6 +317,12 @@ details[open] summary {
     linear-gradient(#d8e1e7 1px, transparent 1px),
     linear-gradient(90deg, #d8e1e7 1px, transparent 1px);
   background-size: 40px 40px;
+}
+.map-surface {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: transparent;
 }
 .map-canvas--dark {
   background-color: #152232;
