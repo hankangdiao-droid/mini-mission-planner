@@ -1,0 +1,23 @@
+name: Aircraft compatibility / 机型兼容性
+description: Report native parsing or flight verification without uploading private route data.
+body:
+  - type: dropdown
+    id: aircraft
+    attributes:
+      label: Aircraft / 机型
+      options: [Mini 4 Pro, Mini 5 Pro]
+    validations:
+      required: true
+  - type: textarea
+    id: versions
+    attributes:
+      label: Aircraft firmware, controller, DJI Fly versions / 全部版本
+    validations:
+      required: true
+  - type: textarea
+    id: observation
+    attributes:
+      label: Expected and observed behavior / 预期与现象
+      description: Separate file parsing, application preview and actual flight evidence. Do not attach private coordinates or personal files.
+    validations:
+      required: true

@@ -1,0 +1,33 @@
+{
+  "type": "Feature",
+  "properties": {
+    "note": "Synthetic example. Never fly."
+  },
+  "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+      [
+        [
+          0,
+          0
+        ],
+        [
+          0.001,
+          0
+        ],
+        [
+          0.001,
+          0.0007
+        ],
+        [
+          0,
+          0.0007
+        ],
+        [
+          0,
+          0
+        ]
+      ]
+    ]
+  }
+}
