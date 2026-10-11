@@ -14,6 +14,7 @@ A local browser waypoint planning workbench for DJI Mini 5 Pro and Mini 4 Pro, d
 - Restricted waypoint KMZ import and enum calibration from a user-supplied native DJI Fly task.
 - Chinese / English and persistent light / dark themes.
 - Editable coordinates, drag handles, route preview and estimated distance/time.
+- Submit a city/place search, choose a candidate and jump to its bounds without moving the mission. Chinese/English matching depends on the provider.
 - OpenStreetMap tiles load by default with attribution; switch them off to use the offline grid.
 
 No backend, database, GPU, map key or DJI developer account is required. This is not an official DJI application or a DJI Fly import API integration.
@@ -50,6 +51,7 @@ Draw or import WGS84 geometry, choose aircraft and settings, inspect waypoints, 
 - Dwell is an estimate only; exported actions are gimbal rotation and optional photography. Time estimates omit some climb, turn, wind and trajectory effects and do not guarantee battery endurance.
 - KMZ import accepts only the limited relative-height, explicit-heading, single-route, point-action subset used here. Unsupported action semantics must be rejected rather than silently treated as equivalent.
 - Project and KMZ files are processed locally. Enabling tiles sends viewport requests to OpenStreetMap.
+- Place searches send query text to the selected service. The default public Nominatim endpoint is for this local preview: submit-only, no autocomplete, cached responses, at least 1.1 seconds between requests. Its one-request-per-second limit applies to the whole application; multi-user deployments need a suitable proxy/provider. Read the [usage policy](https://operations.osmfoundation.org/policies/nominatim/) and [search documentation](docs/PLACE-SEARCH.md).
 - Demo geometry near 0° / 0° is synthetic and must never be flown.
 
 MIT licensed. See dependency notices and primary sources in the documentation. Contributions and redacted compatibility evidence are welcome.

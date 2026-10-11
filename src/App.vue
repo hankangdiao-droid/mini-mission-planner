@@ -2,6 +2,12 @@
 import { computed, reactive, ref, watch, nextTick } from "vue";
 import { zipSync, strToU8 } from "fflate";
 import MissionMap from "./components/MissionMap.vue";
+import PlaceSearch from "./components/PlaceSearch.vue";
+import {
+  defaultSearchEndpoint,
+  validateSearchEndpoint,
+} from "./core/placeSearch";
+import type { Place } from "./core/placeSearch";
 import { aircraft } from "./core/profiles";
 import { defaults } from "./core/types";
 import type {
@@ -54,6 +60,24 @@ const basemap = ref<Basemap>({ ...osm }),
   mapStatus = ref("offline"),
   showMapSettings = ref(false),
   location = reactive({ lng: 116.4074, lat: 39.9042 });
+const searchEndpoint = ref(defaultSearchEndpoint),
+  searchEndpointDraft = ref(defaultSearchEndpoint);
+function selectPlace(place: Place) {
+  map.value?.locate(place, place.bounds);
+}
+function applySearchEndpoint() {
+  try {
+    searchEndpoint.value = validateSearchEndpoint(
+      searchEndpointDraft.value.trim(),
+    ).href;
+    notice.value = t("已切换查询服务", "Search provider changed.");
+  } catch {
+    notice.value = t(
+      "查询地址须为 HTTPS 或本机 HTTP 服务",
+      "Search endpoint must use HTTPS or local HTTP.",
+    );
+  }
+}
 const statusLabel = computed(
   () =>
     ({
@@ -737,6 +761,13 @@ function locate() {
             ><button @click="demo">{{ t("演示数据", "Demo") }}</button>
           </div>
         </div>
+        <div class="search-toolbar">
+          <PlaceSearch
+            :english="english"
+            :endpoint="searchEndpoint"
+            @select="selectPlace"
+          />
+        </div>
         <div v-if="showMapSettings" class="basemap-settings">
           <div>
             <strong>{{
@@ -816,42 +847,73 @@ function locate() {
               }}
             </p>
           </div>
+          <div class="geocoder-settings">
+            <strong>{{ t("地名查询服务", "Place search provider") }}</strong>
+            <label
+              >{{ t("Nominatim 兼容查询地址", "Nominatim-compatible endpoint")
+              }}<input v-model="searchEndpointDraft" type="url"
+            /></label>
+            <button @click="applySearchEndpoint">
+              {{ t("应用查询服务", "Apply search provider") }}
+            </button>
+            <details class="search-policy">
+              <summary>
+                {{ t("查询服务使用说明", "Search service usage") }}
+              </summary>
+              <p class="hint">
+                {{
+                  t(
+                    "默认使用 Nominatim 公共服务，仅在提交搜索时查询，不做自动补全，查询间隔至少 1.1 秒，并缓存本页结果。该公共服务按整个应用限流，当前仅用于本地预览。公开多人使用前需配置代理或合适的服务。",
+                    "The default public Nominatim service is queried only on submit, without autocomplete, with at least 1.1 seconds between requests and in-page caching. Its limits apply to the whole application. This setup is for local preview; configure a proxy or suitable provider before a multi-user deployment.",
+                  )
+                }}
+              </p>
+              <a
+                href="https://operations.osmfoundation.org/policies/nominatim/"
+                target="_blank"
+                rel="noopener noreferrer"
+                >{{ t("Nominatim 使用政策", "Nominatim usage policy") }}</a
+              >
+            </details>
+          </div>
         </div>
-        <MissionMap
-          ref="map"
-          :points="points"
-          :waypoints="waypoints"
-          :home="home"
-          :closed="settings.mode === 'survey'"
-          :dark="dark"
-          :online="online"
-          :tool="tool"
-          :english="english"
-          :basemap="basemap"
-          @status="mapStatus = $event"
-          @add="add"
-          @move="move"
-          @home="
-            home = $event;
-            tool = 'draw';
-          "
-        />
-        <div class="map-note">
-          <strong>{{
-            imported
-              ? t("导入任务", "Imported task")
-              : t("点击加点 · 拖动调整", "Click to add · Drag to adjust")
-          }}</strong
-          ><label class="check"
-            ><input v-model="online" type="checkbox" />{{
-              t("显示底图", "Show basemap")
-            }}</label
-          ><span
-            v-if="online && mapStatus !== 'ready'"
-            class="basemap-status"
-            role="status"
-            >{{ statusLabel }}</span
-          >
+        <div class="map-viewport">
+          <MissionMap
+            ref="map"
+            :points="points"
+            :waypoints="waypoints"
+            :home="home"
+            :closed="settings.mode === 'survey'"
+            :dark="dark"
+            :online="online"
+            :tool="tool"
+            :english="english"
+            :basemap="basemap"
+            @status="mapStatus = $event"
+            @add="add"
+            @move="move"
+            @home="
+              home = $event;
+              tool = 'draw';
+            "
+          />
+          <div class="map-note">
+            <strong>{{
+              imported
+                ? t("导入任务", "Imported task")
+                : t("点击加点 · 拖动调整", "Click to add · Drag to adjust")
+            }}</strong
+            ><label class="check"
+              ><input v-model="online" type="checkbox" />{{
+                t("显示底图", "Show basemap")
+              }}</label
+            ><span
+              v-if="online && mapStatus !== 'ready'"
+              class="basemap-status"
+              role="status"
+              >{{ statusLabel }}</span
+            >
+          </div>
         </div>
         <div class="stats-bar">
           <div>

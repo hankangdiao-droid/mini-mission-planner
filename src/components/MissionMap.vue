@@ -144,8 +144,18 @@ function basemap() {
     emit("status", "error");
   }
 }
-function locate(point: Point) {
-  if (pointValid(point)) map.setView([point.lat, point.lng], 17);
+function locate(point: Point, bounds?: [number, number, number, number]) {
+  if (!pointValid(point)) return;
+  if (bounds) {
+    const [south, north, west, east] = bounds;
+    map.fitBounds(
+      [
+        [south, west],
+        [north, east],
+      ],
+      { padding: [40, 40], maxZoom: 15, animate: false },
+    );
+  } else map.setView([point.lat, point.lng], 17);
 }
 onMounted(() => {
   map = L.map(container.value!, {

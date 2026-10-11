@@ -9,3 +9,5 @@ Geometry is brown/dashed, mission path blue, takeoff marker green. Danger and wa
 No private campus map is used. Demo data is synthetic and explicitly labeled in the UI. OpenStreetMap loads online by default; the user can switch it off for the offline grid.
 
 Initial view is Beijing with empty geometry; synthetic data is loaded only through the Demo button. Routine explanatory text is kept inside advanced settings and Compatibility & usage. Height datum remains beside the height parameters. Loading errors stay on the map. The export and file controls stay at the bottom of the desktop sidebar while parameters scroll independently. The mobile layout uses normal page scrolling.
+
+Place search sits in a separate compact row above the map. Results are explicit buttons with region/country context and do not autocomplete. Map instructions are anchored inside the map viewport, so search results and toolbar resizing do not overlap the search input.
