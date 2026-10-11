@@ -73,6 +73,7 @@ test("themes, language, modes, review gating and export work offline", async ({
 test("keyboard editing and small viewport stay usable", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
+  await page.getByRole("button", { name: "演示数据" }).click();
   await page.getByRole("button", { name: "坐标与航点表" }).click();
   await page.getByLabel("1 longitude").fill("0.0001");
   await page.getByLabel("1 longitude").press("Tab");

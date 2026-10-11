@@ -35,7 +35,7 @@ try {
 }
 const t = (zh: string, en: string) => (english.value ? en : zh);
 const model = ref<ModelId>("mini5pro"),
-  name = ref("demo-facade"),
+  name = ref("new-mission"),
   points = ref<Point[]>([]),
   home = ref<Point>();
 const settings = reactive<Settings>({ ...defaults }),
@@ -53,7 +53,7 @@ const basemap = ref<Basemap>({ ...osm }),
   tileForm = reactive({ ...osm }),
   mapStatus = ref("offline"),
   showMapSettings = ref(false),
-  location = reactive({ lng: 116.4, lat: 39.9 });
+  location = reactive({ lng: 116.4074, lat: 39.9042 });
 const statusLabel = computed(
   () =>
     ({
@@ -378,7 +378,6 @@ function locate() {
   }
   map.value?.locate(location);
 }
-demo();
 </script>
 
 <template>

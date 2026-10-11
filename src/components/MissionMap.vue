@@ -149,8 +149,8 @@ function locate(point: Point) {
 }
 onMounted(() => {
   map = L.map(container.value!, {
-    center: [0, 0],
-    zoom: 18,
+    center: [39.9042, 116.4074],
+    zoom: 11,
     zoomControl: false,
     worldCopyJump: true,
   });
@@ -167,7 +167,6 @@ onMounted(() => {
   resize.observe(container.value!);
   redraw();
   basemap();
-  fit();
 });
 watch(
   () => [props.points, props.waypoints, props.home, props.closed, props.dark],
