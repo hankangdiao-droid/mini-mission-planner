@@ -4,7 +4,7 @@ export default defineConfig({
   workers: 1,
   reporter: "list",
   use: {
-    baseURL: "http://127.0.0.1:5180",
+    baseURL: "http://127.0.0.1:5181",
     viewport: { width: 1440, height: 1000 },
     headless: true,
     launchOptions: process.env.MMP_BROWSER
@@ -12,8 +12,8 @@ export default defineConfig({
       : undefined,
   },
   webServer: {
-    command: "npm run dev",
-    url: "http://127.0.0.1:5180",
-    reuseExistingServer: !process.env.CI,
+    command: "npm run dev -- --port 5181 --strictPort",
+    url: "http://127.0.0.1:5181",
+    reuseExistingServer: false,
   },
 });

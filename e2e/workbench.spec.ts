@@ -105,7 +105,7 @@ test("basemap failures are visible and local XYZ configuration can be applied", 
   await page
     .getByLabel("HTTPS 地址模板")
     .fill("http://127.0.0.1:9000/{z}/{x}/{y}.png");
-  await page.getByLabel("版权归属").fill("Local authorized imagery");
+  await page.getByLabel("版权归属", { exact: true }).fill("Local authorized imagery");
   await page.getByRole("button", { name: "应用底图" }).click();
   await page.getByRole("button", { name: "底图与定位" }).click();
   await expect(page.locator(".basemap-status")).toHaveCount(0);
