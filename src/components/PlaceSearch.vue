@@ -2,8 +2,8 @@
 import { ref, watch, onBeforeUnmount } from "vue";
 import { searchPlaces, PlaceSearchError } from "../core/placeSearch";
 import type { Place } from "../core/placeSearch";
-const props = defineProps<{ english: boolean; endpoint: string }>();
-const emit = defineEmits<{ select: [Place] }>();
+const props = defineProps<{ english: boolean; endpoint: string; attribution: string; attributionUrl: string }>();
+const emit = defineEmits<{ select: [Place]; configure: [] }>();
 const query = ref(""),
   places = ref<Place[]>([]),
   busy = ref(false),
@@ -25,7 +25,7 @@ function reset() {
 watch(query, reset);
 watch(() => [props.english, props.endpoint], reset);
 async function submit() {
-  if (!query.value.trim() || busy.value) return;
+  if (!props.endpoint || !query.value.trim() || busy.value) return;
   const id = ++request;
   controller?.abort();
   const current = new AbortController();
@@ -86,7 +86,7 @@ onBeforeUnmount(reset);
 </script>
 <template>
   <div class="place-search" @keydown.esc="expanded = false">
-    <form class="place-search-form" role="search" @submit.prevent="submit">
+    <form v-if="endpoint" class="place-search-form" role="search" @submit.prevent="submit">
       <svg
         width="18"
         height="18"
@@ -119,7 +119,11 @@ onBeforeUnmount(reset);
         {{ busy ? t("查询中…", "Searching…") : t("搜索", "Search") }}
       </button>
     </form>
-    <div v-if="expanded" id="place-search-results" class="place-search-results">
+    <div v-else class="place-search-form">
+      <span>{{ t('配置搜索服务后可搜索城市或地点', 'Configure a provider to search cities or places') }}</span>
+      <button type="button" @click="emit('configure')">{{ t('配置搜索', 'Configure search') }}</button>
+    </div>
+    <div v-if="endpoint && expanded" id="place-search-results" class="place-search-results">
       <div class="place-search-heading">
         <span>{{ t("选择地点", "Choose a place") }}</span
         ><button
@@ -153,12 +157,8 @@ onBeforeUnmount(reset);
         </li>
       </ul>
       <div v-if="places.length" class="search-attribution">
-        <a
-          href="https://www.openstreetmap.org/copyright"
-          target="_blank"
-          rel="noopener noreferrer"
-          >© OpenStreetMap contributors</a
-        >
+        <a v-if="attributionUrl" :href="attributionUrl" target="_blank" rel="noopener noreferrer">{{ attribution }}</a>
+        <span v-else>{{ attribution }}</span>
       </div>
     </div>
   </div>

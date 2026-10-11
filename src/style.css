@@ -326,6 +326,12 @@ details[open] summary {
   flex: none;
   min-width: 64px;
 }
+.place-search-form > span {
+  flex: 1;
+  min-width: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
 .place-search-results {
   position: absolute;
   top: calc(100% + 6px);

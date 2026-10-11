@@ -1,8 +1,8 @@
 import type { Point } from "./types";
 import { pointValid } from "./geometry";
 
-export const defaultSearchEndpoint =
-  "https://nominatim.openstreetmap.org/search";
+// No shared public geocoder is enabled by default.
+export const defaultSearchEndpoint = "";
 export type Place = Point & {
   id: string;
   name: string;

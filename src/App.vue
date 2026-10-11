@@ -61,20 +61,47 @@ const basemap = ref<Basemap>({ ...osm }),
   showMapSettings = ref(false),
   location = reactive({ lng: 116.4074, lat: 39.9042 });
 const searchEndpoint = ref(defaultSearchEndpoint),
-  searchEndpointDraft = ref(defaultSearchEndpoint);
+  searchEndpointDraft = ref(defaultSearchEndpoint),
+  searchAttribution = ref(""),
+  searchAttributionDraft = ref(""),
+  searchAttributionUrl = ref(""),
+  searchAttributionUrlDraft = ref("");
+const searchSettings = ref<HTMLElement>();
+async function configureSearch() {
+  showMapSettings.value = true;
+  await nextTick();
+  searchSettings.value?.scrollIntoView({ block: "nearest" });
+  searchSettings.value?.querySelector("input")?.focus();
+}
 function selectPlace(place: Place) {
   map.value?.locate(place, place.bounds);
 }
 function applySearchEndpoint() {
+  if (!searchEndpointDraft.value.trim()) {
+    searchEndpoint.value = "";
+    searchAttribution.value = "";
+    searchAttributionUrl.value = "";
+    notice.value = t("已关闭地名搜索", "Place search disabled.");
+    return;
+  }
+  if (!searchAttributionDraft.value.trim()) {
+    notice.value = t("请填写查询服务要求的版权归属", "Enter the attribution required by your provider.");
+    return;
+  }
   try {
+    const attributionUrl = searchAttributionUrlDraft.value.trim()
+      ? validateSearchEndpoint(searchAttributionUrlDraft.value.trim()).href
+      : "";
     searchEndpoint.value = validateSearchEndpoint(
       searchEndpointDraft.value.trim(),
     ).href;
+    searchAttribution.value = searchAttributionDraft.value.trim();
+    searchAttributionUrl.value = attributionUrl;
     notice.value = t("已切换查询服务", "Search provider changed.");
   } catch {
     notice.value = t(
-      "查询地址须为 HTTPS 或本机 HTTP 服务",
-      "Search endpoint must use HTTPS or local HTTP.",
+      "查询及版权链接须为 HTTPS 或本机 HTTP 地址",
+      "Search and attribution URLs must use HTTPS or local HTTP.",
     );
   }
 }
@@ -765,7 +792,10 @@ function locate() {
           <PlaceSearch
             :english="english"
             :endpoint="searchEndpoint"
+            :attribution="searchAttribution"
+            :attribution-url="searchAttributionUrl"
             @select="selectPlace"
+            @configure="configureSearch"
           />
         </div>
         <div v-if="showMapSettings" class="basemap-settings">
@@ -847,15 +877,18 @@ function locate() {
               }}
             </p>
           </div>
-          <div class="geocoder-settings">
+          <div ref="searchSettings" class="geocoder-settings">
             <strong>{{ t("地名查询服务", "Place search provider") }}</strong>
             <label
               >{{ t("Nominatim 兼容查询地址", "Nominatim-compatible endpoint")
-              }}<input v-model="searchEndpointDraft" type="url"
+              }}<input v-model="searchEndpointDraft" type="url" autocomplete="off" placeholder="https://your-provider/search"
             /></label>
+            <label>{{ t("搜索结果版权归属", "Search result attribution") }}<input v-model="searchAttributionDraft" maxlength="300" :placeholder="t('按服务要求填写', 'As required by your provider')" /></label>
+            <label>{{ t("版权链接（选填）", "Attribution URL (optional)") }}<input v-model="searchAttributionUrlDraft" type="url" placeholder="https://your-provider/attribution" /></label>
             <button @click="applySearchEndpoint">
               {{ t("应用查询服务", "Apply search provider") }}
             </button>
+            <button @click="searchEndpointDraft = ''; searchAttributionDraft = ''; searchAttributionUrlDraft = ''; applySearchEndpoint()">{{ t("关闭搜索", "Disable search") }}</button>
             <details class="search-policy">
               <summary>
                 {{ t("查询服务使用说明", "Search service usage") }}
@@ -863,8 +896,8 @@ function locate() {
               <p class="hint">
                 {{
                   t(
-                    "默认使用 Nominatim 公共服务，仅在提交搜索时查询，不做自动补全，查询间隔至少 1.1 秒，并缓存本页结果。该公共服务按整个应用限流，当前仅用于本地预览。公开多人使用前需配置代理或合适的服务。",
-                    "The default public Nominatim service is queried only on submit, without autocomplete, with at least 1.1 seconds between requests and in-page caching. Its limits apply to the whole application. This setup is for local preview; configure a proxy or suitable provider before a multi-user deployment.",
+                    "请配置有权使用、支持浏览器访问的 Nominatim 兼容服务，并遵守其限流、版权和隐私要求。配置仅保留在当前页面。搜索词会发给该服务，勿输入保密信息。浏览器不能保护私密 API 密钥，此类密钥应由自建代理保管。公共 Nominatim 的限制按整个应用计算，用户自行配置仍须遵守。",
+                    "Configure an authorized, browser-accessible Nominatim-compatible service and follow its rate, attribution and privacy requirements. Settings last only for this page. Queries are sent to that service; do not enter confidential data. Keep secret API keys in your own proxy, not the browser. Public Nominatim limits apply to the whole application even when users configure it themselves.",
                   )
                 }}
               </p>
