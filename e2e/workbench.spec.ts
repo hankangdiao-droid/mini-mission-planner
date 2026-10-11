@@ -39,13 +39,9 @@ test("themes, language, modes, review gating and export work offline", async ({
   await expect(page.locator(".validation .error")).toHaveCount(0);
   await page.getByRole("button", { name: "Facade", exact: true }).click();
   await page.getByRole("button", { name: "Demo", exact: true }).click();
+  await page.getByLabel("Heights, return path and site reviewed").check();
   await page
-    .getByLabel("I reviewed relative heights, RTH path and site conditions")
-    .check();
-  await page
-    .getByLabel(
-      "I understand this release needs flight verification and will review it in DJI Fly",
-    )
+    .getByLabel("Flight verification pending; I will review in DJI Fly")
     .check();
   const download = page.waitForEvent("download");
   await page.getByRole("button", { name: /^Export/ }).click();
@@ -103,7 +99,7 @@ test("basemap failures are visible and local XYZ configuration can be applied", 
     }),
   );
   await page.goto("/");
-  await page.getByLabel("联网显示底图（视口请求会发给地图服务）").check();
+  await page.getByLabel("显示底图").check();
   await expect(page.locator(".basemap-status")).toContainText("底图加载失败");
   await page.getByRole("button", { name: "底图与定位" }).click();
   await page
@@ -112,7 +108,7 @@ test("basemap failures are visible and local XYZ configuration can be applied", 
   await page.getByLabel("版权归属").fill("Local authorized imagery");
   await page.getByRole("button", { name: "应用底图" }).click();
   await page.getByRole("button", { name: "底图与定位" }).click();
-  await expect(page.locator(".basemap-status")).toContainText("底图已加载");
+  await expect(page.locator(".basemap-status")).toHaveCount(0);
   await expect(page.locator(".leaflet-control-attribution")).toContainText(
     "Local authorized imagery",
   );

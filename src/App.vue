@@ -122,6 +122,9 @@ const issues = computed(() => {
 const stats = computed(() =>
   statistics(waypoints.value, settings.hoverEstimate, home.value),
 );
+const displayIssues = computed(() =>
+  issues.value.filter((issue) => issue.code !== "NO_MESH"),
+);
 const parts = computed(() => {
   try {
     return splitMission(waypoints.value, settings.maxWaypoints);
@@ -385,15 +388,7 @@ function locate() {
     <header class="topbar">
       <div class="brand">
         <span class="brand-mark">M↗</span>
-        <div>
-          <strong>Mini Mission Planner</strong
-          ><small
-            >{{ t("轻量航线工作台", "Local mission workbench") }}
-            <span
-              >v0.1 · {{ t("实飞待验证", "flight verification pending") }}</span
-            ></small
-          >
-        </div>
+        <strong>Mini Mission Planner</strong>
       </div>
       <div class="top-actions">
         <button @click="english = !english">
@@ -408,272 +403,309 @@ function locate() {
     </header>
     <main class="workspace">
       <aside class="sidebar">
-        <div class="section-title">
-          <span>01</span>
-          <h1>{{ t("规划任务", "Plan a mission") }}</h1>
-        </div>
-        <label
-          >{{ t("任务名称", "Mission name")
-          }}<input v-model="name" maxlength="80"
-        /></label>
-        <label
-          >{{ t("机型", "Aircraft")
-          }}<select v-model="model" :aria-label="t('机型', 'Aircraft')">
-            <option value="mini5pro">DJI Mini 5 Pro</option>
-            <option value="mini4pro">DJI Mini 4 Pro</option>
-          </select></label
-        >
-        <p class="evidence">{{ activeAircraft.evidence }}</p>
-        <div
-          class="mode-tabs"
-          role="group"
-          :aria-label="t('规划模式', 'Planning mode')"
-        >
-          <button
-            v-for="(mode, i) in ['survey', 'facade', 'orbit'] as const"
-            :key="mode"
-            :class="{ selected: settings.mode === mode }"
-            :aria-pressed="settings.mode === mode"
-            @click="settings.mode = mode"
+        <div class="sidebar-content">
+          <div class="section-title">
+            <h1>{{ t("规划任务", "Plan a mission") }}</h1>
+          </div>
+          <label
+            >{{ t("任务名称", "Mission name")
+            }}<input v-model="name" maxlength="80"
+          /></label>
+          <label
+            >{{ t("机型", "Aircraft")
+            }}<select v-model="model" :aria-label="t('机型', 'Aircraft')">
+              <option value="mini5pro">DJI Mini 5 Pro</option>
+              <option value="mini4pro">DJI Mini 4 Pro</option>
+            </select></label
           >
-            {{ modeNames[i] }}
-          </button>
-        </div>
-        <template v-if="settings.mode === 'facade'">
+          <div
+            class="mode-tabs"
+            role="group"
+            :aria-label="t('规划模式', 'Planning mode')"
+          >
+            <button
+              v-for="(mode, i) in ['survey', 'facade', 'orbit'] as const"
+              :key="mode"
+              :class="{ selected: settings.mode === mode }"
+              :aria-pressed="settings.mode === mode"
+              @click="settings.mode = mode"
+            >
+              {{ modeNames[i] }}
+            </button>
+          </div>
+          <template v-if="settings.mode === 'facade'">
+            <div class="field-grid">
+              <label
+                >{{ t("最低高度", "Lowest height") }} · m<input
+                  v-model.number="settings.low"
+                  type="number"
+                  min="1"
+                  max="500" /></label
+              ><label
+                >{{ t("最高高度", "Highest height") }} · m<input
+                  v-model.number="settings.high"
+                  type="number"
+                  min="1"
+                  max="500"
+              /></label>
+            </div>
+            <div class="field-grid">
+              <label
+                >{{ t("离墙距离", "Wall standoff") }} · m<input
+                  v-model.number="settings.distance"
+                  type="number"
+                  min="2"
+                  max="100" /></label
+              ><label
+                >{{ t("飞行侧", "Offset side")
+                }}<select v-model="settings.side">
+                  <option value="left">
+                    {{ t("绘制方向左侧", "Left of drawing") }}
+                  </option>
+                  <option value="right">
+                    {{ t("绘制方向右侧", "Right of drawing") }}
+                  </option>
+                </select></label
+              >
+            </div>
+          </template>
+          <template v-else
+            ><div class="field-grid">
+              <label
+                >{{ t("飞行高度", "Flight height") }} · m<input
+                  v-model.number="settings.height"
+                  type="number"
+                  min="1"
+                  max="500" /></label
+              ><label
+                >{{ t("云台俯仰", "Gimbal pitch") }} · °<input
+                  v-model.number="settings.pitch"
+                  type="number"
+                  :min="activeAircraft.pitchMin"
+                  :max="activeAircraft.pitchMax"
+              /></label></div
+          ></template>
           <div class="field-grid">
             <label
-              >{{ t("最低高度", "Lowest height") }} · m<input
-                v-model.number="settings.low"
+              >{{ t("飞行速度", "Flight speed") }} · m/s<input
+                v-model.number="settings.speed"
                 type="number"
-                min="1"
-                max="500" /></label
+                min="0.1"
+                max="12"
+                step="0.1" /></label
             ><label
-              >{{ t("最高高度", "Highest height") }} · m<input
-                v-model.number="settings.high"
+              >{{ t("返航高度", "RTH height") }} · m<input
+                v-model.number="settings.rthHeight"
                 type="number"
-                min="1"
+                min="5"
                 max="500"
             /></label>
           </div>
-          <div class="field-grid">
+          <div v-if="settings.mode !== 'orbit'" class="field-grid">
             <label
-              >{{ t("离墙距离", "Wall standoff") }} · m<input
-                v-model.number="settings.distance"
-                type="number"
-                min="2"
-                max="100" /></label
-            ><label
-              >{{ t("飞行侧", "Offset side")
-              }}<select v-model="settings.side">
-                <option value="left">
-                  {{ t("绘制方向左侧", "Left of drawing") }}
-                </option>
-                <option value="right">
-                  {{ t("绘制方向右侧", "Right of drawing") }}
-                </option>
-              </select></label
-            >
-          </div>
-        </template>
-        <template v-else
-          ><div class="field-grid">
-            <label
-              >{{ t("飞行高度", "Flight height") }} · m<input
-                v-model.number="settings.height"
-                type="number"
-                min="1"
-                max="500" /></label
-            ><label
-              >{{ t("云台俯仰", "Gimbal pitch") }} · °<input
-                v-model.number="settings.pitch"
-                type="number"
-                :min="activeAircraft.pitchMin"
-                :max="activeAircraft.pitchMax"
-            /></label></div
-        ></template>
-        <div class="field-grid">
-          <label
-            >{{ t("飞行速度", "Flight speed") }} · m/s<input
-              v-model.number="settings.speed"
-              type="number"
-              min="0.1"
-              max="12"
-              step="0.1" /></label
-          ><label
-            >{{ t("返航高度", "RTH height") }} · m<input
-              v-model.number="settings.rthHeight"
-              type="number"
-              min="5"
-              max="500"
-          /></label>
-        </div>
-        <div v-if="settings.mode !== 'orbit'" class="field-grid">
-          <label
-            >{{ t("沿线重叠", "Along overlap") }} · %<input
-              v-model.number="settings.frontOverlap"
-              type="number"
-              min="0"
-              max="95" /></label
-          ><label
-            >{{ t("跨线重叠", "Across overlap") }} · %<input
-              v-model.number="settings.sideOverlap"
-              type="number"
-              min="0"
-              max="95"
-          /></label>
-        </div>
-        <label v-if="settings.mode === 'survey'"
-          >{{ t("扫描方向", "Scan heading") }} · °<input
-            v-model.number="settings.angle"
-            type="number"
-            min="-180"
-            max="180"
-        /></label>
-        <template v-if="settings.mode === 'orbit'"
-          ><div class="field-grid">
-            <label
-              >{{ t("半径", "Radius") }} · m<input
-                v-model.number="settings.radius"
-                type="number"
-                min="3"
-                max="500" /></label
-            ><label
-              >{{ t("圈数", "Turns")
-              }}<input
-                v-model.number="settings.turns"
-                type="number"
-                min="1"
-                max="5"
-            /></label>
-          </div>
-          <label
-            >{{ t("航点间估算飞行时间", "Travel time between points") }} ·
-            s<input
-              v-model.number="settings.photoInterval"
-              type="number"
-              min="1"
-              max="20" /></label
-        ></template>
-        <p class="hint">
-          {{
-            t(
-              "所有高度均相对起飞点，不能当作离地高度。",
-              "All heights are relative to takeoff, not above terrain.",
-            )
-          }}
-        </p>
-        <details>
-          <summary>
-            {{ t("高级参数与任务分段", "Advanced settings & parts") }}
-          </summary>
-          <div class="field-grid">
-            <label
-              >{{ t("相对高度上限", "Relative ceiling") }} · m<input
-                v-model.number="settings.relativeHeightLimit"
-                type="number"
-                min="1"
-                max="500" /></label
-            ><label
-              >{{ t("每份航点上限", "Waypoints per part")
-              }}<input
-                v-model.number="settings.maxWaypoints"
-                type="number"
-                min="2"
-                max="200" /></label
-            ><label
-              >{{ t("起飞安全高度", "Takeoff safety height") }} · m<input
-                v-model.number="settings.takeoffSecurityHeight"
-                type="number"
-                min="1.2"
-                max="100"
-                step="0.1" /></label
-            ><label
-              >{{ t("拍照停留估算", "Photo dwell estimate") }} · s<input
-                v-model.number="settings.hoverEstimate"
+              >{{ t("沿线重叠", "Along overlap") }} · %<input
+                v-model.number="settings.frontOverlap"
                 type="number"
                 min="0"
-                max="30"
+                max="95" /></label
+            ><label
+              >{{ t("跨线重叠", "Across overlap") }} · %<input
+                v-model.number="settings.sideOverlap"
+                type="number"
+                min="0"
+                max="95"
             /></label>
           </div>
+          <label v-if="settings.mode === 'survey'"
+            >{{ t("扫描方向", "Scan heading") }} · °<input
+              v-model.number="settings.angle"
+              type="number"
+              min="-180"
+              max="180"
+          /></label>
+          <template v-if="settings.mode === 'orbit'"
+            ><div class="field-grid">
+              <label
+                >{{ t("半径", "Radius") }} · m<input
+                  v-model.number="settings.radius"
+                  type="number"
+                  min="3"
+                  max="500" /></label
+              ><label
+                >{{ t("圈数", "Turns")
+                }}<input
+                  v-model.number="settings.turns"
+                  type="number"
+                  min="1"
+                  max="5"
+              /></label>
+            </div>
+            <label
+              >{{ t("航点间估算飞行时间", "Travel time between points") }} ·
+              s<input
+                v-model.number="settings.photoInterval"
+                type="number"
+                min="1"
+                max="20" /></label
+          ></template>
           <p class="hint">
-            {{
+            {{ t("高度相对起飞点", "Heights relative to takeoff") }}
+          </p>
+          <details>
+            <summary>
+              {{ t("高级参数", "Advanced settings") }}
+            </summary>
+            <div class="field-grid">
+              <label
+                >{{ t("相对高度上限", "Relative ceiling") }} · m<input
+                  v-model.number="settings.relativeHeightLimit"
+                  type="number"
+                  min="1"
+                  max="500" /></label
+              ><label
+                >{{ t("每份航点上限", "Waypoints per part")
+                }}<input
+                  v-model.number="settings.maxWaypoints"
+                  type="number"
+                  min="2"
+                  max="200" /></label
+              ><label
+                >{{ t("起飞安全高度", "Takeoff safety height") }} · m<input
+                  v-model.number="settings.takeoffSecurityHeight"
+                  type="number"
+                  min="1.2"
+                  max="100"
+                  step="0.1" /></label
+              ><label
+                >{{ t("拍照停留估算", "Photo dwell estimate") }} · s<input
+                  v-model.number="settings.hoverEstimate"
+                  type="number"
+                  min="0"
+                  max="30"
+              /></label>
+            </div>
+            <p class="hint">
+              {{
+                t(
+                  "停留仅用于估算时长，未导出悬停动作。分段任务需分别起飞，不是断点续飞。",
+                  "Dwell is an estimate only; no hover action is exported. Parts are independent flights, not resume points.",
+                )
+              }}
+            </p>
+          </details>
+          <div class="section-title">
+            <h2>{{ t("检查与导出", "Review & export") }}</h2>
+          </div>
+          <div class="validation" aria-live="polite">
+            <p
+              v-for="(issue, i) in displayIssues"
+              :key="i"
+              :class="issue.level"
+            >
+              <strong>{{ issue.level === "error" ? "×" : "!" }}</strong
+              >{{ english ? issue.en : issue.zh }}
+            </p>
+          </div>
+          <details class="usage-notes">
+            <summary>
+              {{ t("兼容性与使用说明", "Compatibility & usage") }}
+            </summary>
+            <p class="hint">
+              {{
+                t(
+                  "v0.1 技术预览，两款机型在本独立版本中均待实飞验证。",
+                  "v0.1 preview. Both aircraft require flight verification in this release.",
+                )
+              }}
+            </p>
+            <p class="hint">
+              {{
+                t(
+                  "用本机原生 DJI Fly 任务校准导出配置，导出后核对航点与动作。",
+                  "Calibrate with a native DJI Fly task, then inspect exported waypoints and actions.",
+                )
+              }}
+            </p>
+            <button class="wide" @click="choose('reference')">
+              {{ t("导入原生 KMZ 校准", "Calibrate from native KMZ") }}
+            </button>
+            <p v-if="profile" class="hint">
+              {{ profile.namespace.split("/").pop() }} · drone
+              {{ profile.drone }} · payload {{ profile.payload }}
+            </p>
+            <p class="hint">
+              {{
+                t(
+                  "蓝色为规划航线，虚线为绘制边界。连线不代表真实曲线轨迹，底图坐标需核验。",
+                  "Blue is the planned route; dashed lines are geometry. Preview segments do not represent real curved trajectories. Verify basemap alignment.",
+                )
+              }}
+            </p>
+            <p class="hint">
+              {{
+                t(
+                  "当前工具不检查三维障碍物、地形净空或空域许可。",
+                  "This tool does not check 3D obstacles, terrain clearance or airspace permission.",
+                )
+              }}
+            </p>
+            <p class="hint">
+              {{
+                t(
+                  "时长仅为估算，不保证电池续航。文件在本机处理，开启底图会向地图服务发送视口请求。",
+                  "Time estimates do not guarantee battery endurance. Files stay local; online tiles send viewport requests to the map provider.",
+                )
+              }}
+            </p>
+          </details>
+          <label class="check"
+            ><input v-model="acknowledged" type="checkbox" />{{
               t(
-                "停留仅用于估算时长，未导出悬停动作。分段任务需分别起飞，不是断点续飞。",
-                "Dwell is an estimate only; no hover action is exported. Parts are independent flights, not resume points.",
+                "已核对高度、返航路径与现场条件",
+                "Heights, return path and site reviewed",
               )
-            }}
-          </p>
-        </details>
-        <div class="section-title">
-          <span>02</span>
-          <h2>{{ t("检查与导出", "Review & export") }}</h2>
+            }}</label
+          ><label class="check"
+            ><input v-model="compatibility" type="checkbox" />{{
+              t(
+                "了解实飞待验证，将在 DJI Fly 核验",
+                "Flight verification pending; I will review in DJI Fly",
+              )
+            }}</label
+          >
         </div>
-        <div class="validation" aria-live="polite">
-          <p v-for="(issue, i) in issues" :key="i" :class="issue.level">
-            <strong>{{ issue.level === "error" ? "×" : "!" }}</strong
-            >{{ english ? issue.en : issue.zh }}
-          </p>
-        </div>
-        <p class="hint">
-          {{
-            t(
-              "默认 KMZ 枚举来自原项目或社区参考。请用本机原生任务校准，并在 DJI Fly 中检查。",
-              "Default enums follow project/community references. Calibrate with your own native task and review in DJI Fly.",
-            )
-          }}
-        </p>
-        <button class="wide" @click="choose('reference')">
-          {{ t("导入原生 KMZ 校准枚举", "Calibrate from native KMZ") }}
-        </button>
-        <p v-if="profile" class="hint">
-          {{ profile.namespace.split("/").pop() }} · drone {{ profile.drone }} ·
-          payload {{ profile.payload }}
-        </p>
-        <label class="check"
-          ><input v-model="acknowledged" type="checkbox" />{{
-            t(
-              "我已核对相对高度、返航路径及现场条件",
-              "I reviewed relative heights, RTH path and site conditions",
-            )
-          }}</label
-        ><label class="check"
-          ><input v-model="compatibility" type="checkbox" />{{
-            t(
-              "我了解独立版本尚待真机验证，将在 DJI Fly 核验",
-              "I understand this release needs flight verification and will review it in DJI Fly",
-            )
-          }}</label
-        >
-        <button
-          class="primary wide"
-          :disabled="!canExport"
-          @click="exportTasks"
-        >
-          {{ t("导出", "Export") }}
-          {{ parts.length > 1 ? `${parts.length} KMZ · ZIP` : "KMZ" }} ↗
-        </button>
-        <div class="file-actions">
-          <button @click="saveProject">
-            {{ t("保存项目", "Save project") }}</button
-          ><button @click="choose('project')">
-            {{ t("打开项目", "Open project") }}</button
-          ><button @click="choose('geojson')">GeoJSON</button
-          ><button @click="choose('kmz')">
-            {{ t("打开 KMZ", "Open KMZ") }}
+        <div class="sidebar-footer">
+          <button
+            class="primary wide"
+            :disabled="!canExport"
+            @click="exportTasks"
+          >
+            {{ t("导出", "Export") }}
+            {{ parts.length > 1 ? `${parts.length} KMZ · ZIP` : "KMZ" }} ↗
           </button>
+          <div class="file-actions">
+            <button @click="saveProject">
+              {{ t("保存项目", "Save project") }}</button
+            ><button @click="choose('project')">
+              {{ t("打开项目", "Open project") }}</button
+            ><button @click="choose('geojson')">GeoJSON</button
+            ><button @click="choose('kmz')">
+              {{ t("打开 KMZ", "Open KMZ") }}
+            </button>
+          </div>
+          <p v-if="notice" class="notice" role="status">{{ notice }}</p>
+          <input
+            ref="importInput"
+            type="file"
+            hidden
+            :accept="
+              importKind === 'project' || importKind === 'geojson'
+                ? '.json,.geojson'
+                : '.kmz'
+            "
+            @change="load"
+          />
         </div>
-        <p v-if="notice" class="notice" role="status">{{ notice }}</p>
-        <input
-          ref="importInput"
-          type="file"
-          hidden
-          :accept="
-            importKind === 'project' || importKind === 'geojson'
-              ? '.json,.geojson'
-              : '.kmz'
-          "
-          @change="load"
-        />
       </aside>
       <section class="map-panel">
         <div class="map-toolbar">
@@ -738,10 +770,7 @@ function locate() {
             </button>
             <p class="hint">
               {{
-                t(
-                  "演示坐标在 0°/0° 附近，联网底图会显示海面。查看现场请先定位或导入现场坐标。",
-                  "Demo coordinates are near 0°/0° and show ocean on a real map. Locate your site or import site geometry.",
-                )
+                t("定位只移动地图视角。", "Location changes the map view only.")
               }}
             </p>
           </div>
@@ -781,8 +810,8 @@ function locate() {
             <p class="hint">
               {{
                 t(
-                  "请使用有权访问的服务。高德/腾讯的 GCJ-02 瓦片不能直接当 WGS84 使用。配置只保留在当前页面，不写入项目或 GitHub。",
-                  "Use a service you are authorized to access. GCJ-02 tiles are not directly compatible. Configuration stays in this page, outside projects and GitHub.",
+                  "使用 WGS84 对齐的 XYZ 瓦片，不能直接混用 GCJ-02 底图。",
+                  "Use WGS84-aligned XYZ tiles, not unconverted GCJ-02 tiles.",
                 )
               }}
             </p>
@@ -811,32 +840,25 @@ function locate() {
           <strong>{{
             imported
               ? t("导入任务", "Imported task")
-              : t(
-                  "点击地图添加点，拖拽点调整",
-                  "Click to add points, drag to adjust",
-                )
+              : t("点击加点 · 拖动调整", "Click to add · Drag to adjust")
           }}</strong
-          ><span>{{
-            t(
-              "蓝色为航线，虚线为绘制边界。地图连线不代表实际曲线轨迹。",
-              "Blue: route. Dashed: geometry. Preview segments do not represent actual curved flight paths.",
-            )
-          }}</span
           ><label class="check"
             ><input v-model="online" type="checkbox" />{{
-              t(
-                "联网显示底图（视口请求会发给地图服务）",
-                "Online basemap (viewport requests sent to tile service)",
-              )
+              t("显示底图", "Show basemap")
             }}</label
-          ><span class="basemap-status" role="status">{{ statusLabel }}</span>
+          ><span
+            v-if="online && mapStatus !== 'ready'"
+            class="basemap-status"
+            role="status"
+            >{{ statusLabel }}</span
+          >
         </div>
         <div class="stats-bar">
           <div>
             <span>{{ t("航点", "Waypoints") }}</span
             ><strong
               >{{ waypoints.length
-              }}<small>
+              }}<small v-if="parts.length > 1">
                 / {{ parts.length }} {{ t("份任务", "parts") }}</small
               ></strong
             >
@@ -953,18 +975,5 @@ function locate() {
         </div>
       </section>
     </main>
-    <footer>
-      {{
-        t(
-          "本地处理项目与 KMZ · 无需数据库或显卡",
-          "Projects and KMZ processed locally · No database or GPU",
-        )
-      }}<span>{{
-        t(
-          "时间为估算值，不代表可用电池续航。底图坐标须自行核验。",
-          "Time estimates do not guarantee battery endurance. Verify basemap alignment.",
-        )
-      }}</span>
-    </footer>
   </div>
 </template>

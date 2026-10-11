@@ -88,7 +88,7 @@ input[type="checkbox"] {
   color-scheme: dark;
 }
 .topbar {
-  height: 76px;
+  height: 64px;
   padding: 0 26px;
   display: flex;
   align-items: center;
@@ -112,15 +112,6 @@ input[type="checkbox"] {
   font-size: 19px;
   letter-spacing: -0.4px;
 }
-.brand small {
-  display: block;
-  margin-top: 5px;
-  color: var(--muted);
-  font-size: 12px;
-}
-.brand small span {
-  margin-left: 12px;
-}
 .top-actions {
   display: flex;
   gap: 8px;
@@ -130,14 +121,26 @@ input[type="checkbox"] {
   grid-template-columns: 340px minmax(0, 1fr);
   max-width: 1920px;
   margin: auto;
-  min-height: calc(100vh - 116px);
+  min-height: calc(100vh - 64px);
 }
 .sidebar {
   background: var(--surface);
-  padding: 22px;
+  display: flex;
+  flex-direction: column;
   border-right: 1px solid var(--border);
-  max-height: calc(100vh - 116px);
+  max-height: calc(100vh - 64px);
+  min-height: 0;
+}
+.sidebar-content {
+  flex: 1;
+  min-height: 0;
+  padding: 20px 22px;
   overflow-y: auto;
+}
+.sidebar-footer {
+  flex: none;
+  padding: 16px 22px;
+  border-top: 1px solid var(--border);
 }
 .section-title {
   display: flex;
@@ -150,11 +153,6 @@ input[type="checkbox"] {
   padding-top: 24px;
   margin-top: 24px;
 }
-.section-title > span {
-  color: var(--muted);
-  font-size: 12px;
-  font-variant-numeric: tabular-nums;
-}
 h1,
 h2 {
   font-size: 16px;
@@ -165,7 +163,7 @@ label {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 550;
   margin: 0 0 14px;
 }
@@ -199,16 +197,11 @@ label select {
   color: var(--accent) !important;
   border-color: var(--accent) !important;
 }
-.evidence,
 .hint {
   font-size: 12px;
   line-height: 1.65;
   color: var(--muted);
   margin: 6px 0 14px;
-}
-.evidence {
-  padding: 8px 0;
-  border-bottom: 1px solid var(--border);
 }
 .check {
   flex-direction: row;
@@ -303,7 +296,7 @@ details[open] summary {
   flex-wrap: wrap;
 }
 .map-toolbar button {
-  font-size: 12px;
+  font-size: 13px;
 }
 .map-canvas {
   position: relative;
@@ -334,9 +327,9 @@ details[open] summary {
   position: absolute;
   top: 85px;
   left: 20px;
-  max-width: 420px;
+  max-width: 320px;
   z-index: 500;
-  padding: 12px 14px;
+  padding: 10px 14px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 6px;
@@ -447,17 +440,6 @@ th {
 td input {
   min-width: 100px;
 }
-footer {
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 24px;
-  border-top: 1px solid var(--border);
-  color: var(--muted);
-  font-size: 11px;
-  gap: 16px;
-}
 .leaflet-control-attribution {
   color: #344050;
   background: #fff;
@@ -503,14 +485,11 @@ footer {
 }
 @media (max-width: 760px) {
   .topbar {
-    height: 72px;
+    height: 64px;
     padding: 0 14px;
   }
   .brand strong {
     font-size: 16px;
-  }
-  .brand small span {
-    display: none;
   }
   .brand-mark {
     font-size: 20px;
@@ -531,7 +510,15 @@ footer {
     max-height: none;
     border-right: 0;
     order: 2;
+    padding: 0;
+  }
+  .sidebar-content {
+    flex: none;
+    overflow: visible;
     padding: 20px;
+  }
+  .sidebar-footer {
+    padding: 16px 20px;
   }
   .map-panel {
     order: 1;
@@ -548,7 +535,7 @@ footer {
     max-width: none;
   }
   .map-note .check {
-    font-size: 10px;
+    font-size: 13px;
   }
   .stats-bar {
     gap: 14px;
@@ -563,13 +550,6 @@ footer {
   }
   .coordinate-panel {
     min-height: 220px;
-  }
-  footer {
-    height: auto;
-    padding: 12px 18px;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 6px;
   }
   .map-canvas {
     min-height: 300px;
