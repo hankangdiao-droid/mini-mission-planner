@@ -16,7 +16,7 @@ DJI Mini 5 Pro / Mini 4 Pro 的独立航线规划工作台。源于裂察者项�
 - 任务分段，导出一份 KMZ 或包含多份 KMZ 与估算清单的 ZIP。
 - 项目 JSON 和 GeoJSON 导入，受限的 KMZ 航点导入，原生任务枚举校准。
 - 中文 / English，浅色 / 深色按钮切换并记住选择。
-- 坐标表键盘编辑。默认离线网格地图，可自行开启 OpenStreetMap。
+- 坐标表键盘编辑。默认联网显示 OpenStreetMap，可关闭底图使用离线网格。
 - 底图加载状态、网络失败提示、经纬度定位及自定义 XYZ 瓦片入口。
 
 不需要 MySQL、Java、显卡、地图密钥或 DJI 开发者账号。不是 DJI 官方产品，没有调用 DJI Fly 官方导入 API。

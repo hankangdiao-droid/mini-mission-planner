@@ -26,7 +26,7 @@ import { pointValid } from "./core/geometry";
 
 const english = ref(false),
   dark = ref(false),
-  online = ref(false);
+  online = ref(true);
 try {
   dark.value = localStorage.getItem("mmp-theme") === "dark";
   english.value = localStorage.getItem("mmp-language") === "en";

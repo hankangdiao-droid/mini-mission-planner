@@ -14,7 +14,7 @@ A local browser waypoint planning workbench for DJI Mini 5 Pro and Mini 4 Pro, d
 - Restricted waypoint KMZ import and enum calibration from a user-supplied native DJI Fly task.
 - Chinese / English and persistent light / dark themes.
 - Editable coordinates, drag handles, route preview and estimated distance/time.
-- Offline grid by default; optional OpenStreetMap tiles with attribution.
+- OpenStreetMap tiles load by default with attribution; switch them off to use the offline grid.
 
 No backend, database, GPU, map key or DJI developer account is required. This is not an official DJI application or a DJI Fly import API integration.
 
